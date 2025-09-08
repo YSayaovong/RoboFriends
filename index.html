@@ -5,75 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Robofriends</title>
 
-  <!-- Security headers (best-effort via meta for static hosting) -->
+  <!-- Strict CSP for static hosting (meta-based) -->
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'self';
                  img-src 'self' https://robohash.org data:;
                  script-src 'self';
-                 style-src 'self' 'unsafe-inline';
+                 style-src 'self';
                  connect-src https://jsonplaceholder.typicode.com;
                  base-uri 'none';
                  form-action 'none'">
   <meta http-equiv="Referrer-Policy" content="no-referrer" />
 
-  <style>
-    /* ===== Base / Colors ===== */
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #add8e6;            /* light blue */
-      color: #000;
-    }
-    a { color: #003366; text-decoration: none; }
-    a:hover { text-decoration: underline; }
-
-    /* ===== Header ===== */
-    .header { padding: 2rem 1rem 1rem; text-align: center; }
-    .title  { margin: 0; font-size: 3rem; color: #00008b; } /* dark blue */
-    .subtitle { margin: .5rem 0 1rem; color: #003366; }
-
-    .search { display:flex; justify-content:center; margin-bottom: 2rem; }
-    .search input{
-      width:min(600px, 100%);
-      padding:.9rem 1rem;
-      border-radius: 8px;
-      border:1px solid #003366;
-      font-size:1rem;
-      background:#fff;
-      color:#000;
-    }
-
-    /* ===== Layout ===== */
-    .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem 3rem; }
-    .muted { color:#555; text-align:center; margin:1rem 0; }
-    .hidden { display:none; }
-
-    /* ===== Grid: exactly 5 per row ===== */
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr); /* 5 across */
-      gap: 1rem;
-      justify-items: center;
-    }
-
-    /* ===== Cards ===== */
-    .card{
-      background:#fff;
-      border:1px solid #003366;
-      border-radius:12px;
-      padding:1rem;
-      display:flex; flex-direction:column; align-items:center; text-align:center;
-      width:200px;                                 /* consistent card width */
-      transition: transform .2s ease, box-shadow .2s ease;
-    }
-    .card:hover{ transform: translateY(-5px); box-shadow:0 8px 15px rgba(0,0,0,.3); }
-    .card img{ width:160px; height:160px; border-radius:8px; margin-bottom:.5rem; background:#e6f2ff; object-fit:cover; }
-    .card h3{ margin:.5rem 0 .25rem; font-size:1.1rem; color:#00008b; }
-    .sub{ margin:.25rem 0; color:#333; }
-
-    /* ===== Footer ===== */
-    .footer { padding:1rem; text-align:center; border-top:1px solid #003366; background:#b0c4de; }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header class="header">
@@ -96,97 +39,7 @@
     </small>
   </footer>
 
-  <script>
-    const API_URL = "https://jsonplaceholder.typicode.com/users";
-    const grid = document.getElementById("grid");
-    const statusEl = document.getElementById("status");
-    const searchInput = document.getElementById("searchInput");
-
-    let robots = [];
-    let filtered = [];
-
-    function debounce(fn, ms = 200) {
-      let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn.apply(null, args), ms); };
-    }
-
-    function makeCard({ id, name, username, email }) {
-      // Defensive construction of the avatar URL
-      const uname = (username || name || String(id) || "").toString();
-      const url = new URL("https://robohash.org/" + encodeURIComponent(uname));
-      url.searchParams.set("size", "200x200");
-      url.searchParams.set("set", "set2");
-
-      const art = document.createElement("article");
-      art.className = "card";
-      art.tabIndex = 0;
-
-      const img = document.createElement("img");
-      img.src = url.toString();
-      img.alt = (name || "robot") + " avatar";
-      img.loading = "lazy";
-      img.decoding = "async";
-
-      const h3 = document.createElement("h3");
-      h3.textContent = name || "(no name)";
-
-      const pUser = document.createElement("p");
-      pUser.className = "sub";
-      pUser.textContent = username || "";
-
-      const pEmail = document.createElement("p");
-      pEmail.className = "muted";
-      pEmail.textContent = email || "";
-
-      art.append(img, h3, pUser, pEmail);
-      return art;
-    }
-
-    function render(list) {
-      grid.replaceChildren(); // clears safely
-      if (!list.length) {
-        statusEl.textContent = "No matches.";
-        statusEl.classList.remove("hidden");
-        return;
-      }
-      statusEl.classList.add("hidden");
-      const frag = document.createDocumentFragment();
-      list.forEach(item => frag.appendChild(makeCard(item)));
-      grid.appendChild(frag);
-    }
-
-    function applyFilter(q) {
-      const query = q.trim().toLowerCase();
-      filtered = !query
-        ? robots.slice()
-        : robots.filter(r =>
-            (r.name || "").toLowerCase().includes(query) ||
-            (r.username || "").toLowerCase().includes(query) ||
-            (r.email || "").toLowerCase().includes(query)
-          );
-      render(filtered);
-    }
-
-    async function loadRobots() {
-      try {
-        statusEl.textContent = "Loading robots…";
-        const res = await fetch(API_URL, { method: "GET", mode: "cors" });
-        if (!res.ok) throw new Error(`Network error: ${res.status}`);
-        const data = await res.json();
-        // Ensure array shape
-        robots = Array.isArray(data) ? data : [];
-        filtered = robots.slice();
-        statusEl.classList.add("hidden");
-        render(filtered);
-      } catch (err) {
-        console.error(err);
-        statusEl.textContent = "Unable to load data. Check your internet and refresh.";
-        statusEl.classList.remove("hidden");
-      }
-    }
-
-    // Initialize immediately since script is at the end of <body>
-    loadRobots();
-    searchInput.addEventListener("input", debounce(e => applyFilter(e.target.value), 150));
-  </script>
+  <!-- No inline JS; module/defer keeps DOM ready -->
+  <script src="script.js" type="module" defer></script>
 </body>
 </html>

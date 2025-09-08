@@ -6,80 +6,82 @@ const searchInput = document.getElementById("searchInput");
 let robots = [];
 let filtered = [];
 
-// Debounce helper
 function debounce(fn, ms = 200) {
-  let t;
-  return (...args) => {
-    clearTimeout(t);
-    t = setTimeout(() => fn.apply(this, args), ms);
-  };
+  let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn.apply(null, args), ms); };
 }
 
-// Card template
-function cardTemplate({ id, name, username, email }) {
-  const img = `https://robohash.org/${encodeURIComponent(
-    username || name || id
-  )}?size=200x200&set=set2`;
+function makeCard({ id, name, username, email }) {
+  const uname = (username || name || String(id) || "").toString();
+  const url = new URL("https://robohash.org/" + encodeURIComponent(uname));
+  url.searchParams.set("size", "200x200");
+  url.searchParams.set("set", "set2");
 
-  return `
-    <article class="card" tabindex="0">
-      <img src="${img}" alt="${name} avatar" loading="lazy" />
-      <h3>${name}</h3>
-      <p class="sub">${username}</p>
-      <p class="muted">${email}</p>
-    </article>
-  `;
+  const art = document.createElement("article");
+  art.className = "card";
+  art.tabIndex = 0;
+
+  const img = document.createElement("img");
+  img.src = url.toString();
+  img.alt = `${name || "robot"} avatar`;
+  img.loading = "lazy";
+  img.decoding = "async";
+
+  const h3 = document.createElement("h3");
+  h3.textContent = name || "(no name)";
+
+  const pUser = document.createElement("p");
+  pUser.className = "sub";
+  pUser.textContent = username || "";
+
+  const pEmail = document.createElement("p");
+  pEmail.className = "muted";
+  pEmail.textContent = email || "";
+
+  art.append(img, h3, pUser, pEmail);
+  return art;
 }
 
-// Render
 function render(list) {
+  grid.replaceChildren();
   if (!list.length) {
-    grid.innerHTML = "";
     statusEl.textContent = "No matches.";
     statusEl.classList.remove("hidden");
     return;
   }
   statusEl.classList.add("hidden");
-  grid.innerHTML = list.map(cardTemplate).join("");
+  const frag = document.createDocumentFragment();
+  list.forEach(item => frag.appendChild(makeCard(item)));
+  grid.appendChild(frag);
 }
 
-// Filter
 function applyFilter(q) {
   const query = q.trim().toLowerCase();
-  if (!query) {
-    filtered = robots.slice();
-  } else {
-    filtered = robots.filter(
-      (r) =>
-        r.name.toLowerCase().includes(query) ||
-        r.username.toLowerCase().includes(query) ||
-        r.email.toLowerCase().includes(query)
-    );
-  }
+  filtered = !query
+    ? robots.slice()
+    : robots.filter(r =>
+        (r.name || "").toLowerCase().includes(query) ||
+        (r.username || "").toLowerCase().includes(query) ||
+        (r.email || "").toLowerCase().includes(query)
+      );
   render(filtered);
 }
 
-// Load robots
 async function loadRobots() {
   try {
     statusEl.textContent = "Loading robots…";
-    const res = await fetch(API_URL);
-    if (!res.ok) throw new Error("Network error");
-    robots = await res.json();
+    const res = await fetch(API_URL, { method: "GET", mode: "cors" });
+    if (!res.ok) throw new Error(`Network error: ${res.status}`);
+    const data = await res.json();
+    robots = Array.isArray(data) ? data : [];
     filtered = robots.slice();
     statusEl.classList.add("hidden");
     render(filtered);
   } catch (err) {
     console.error(err);
     statusEl.textContent = "Unable to load data. Check your internet and refresh.";
+    statusEl.classList.remove("hidden");
   }
 }
 
-// Events
-searchInput.addEventListener(
-  "input",
-  debounce((e) => applyFilter(e.target.value), 150)
-);
-
-// Init
-document.addEventListener("DOMContentLoaded", loadRobots);
+searchInput.addEventListener("input", debounce(e => applyFilter(e.target.value), 150));
+loadRobots();
