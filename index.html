@@ -1,9 +1,151 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import './index.css';
-import Card from './Card';
-import registerServiceWorker from './registerServiceWorker';
-import 'tachyons';
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Robofriends</title>
 
-ReactDOM.render(<Card />, document.getElementById('root'));
-registerServiceWorker();
+  <style>
+    /* ===== Base / Colors ===== */
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #add8e6;            /* light blue */
+      color: #000;
+    }
+    a { color: #003366; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ===== Header ===== */
+    .header { padding: 2rem 1rem 1rem; text-align: center; }
+    .title  { margin: 0; font-size: 3rem; color: #00008b; } /* dark blue */
+    .subtitle { margin: .5rem 0 1rem; color: #003366; }
+
+    .search { display:flex; justify-content:center; margin-bottom: 2rem; }
+    .search input{
+      width:min(600px, 100%);
+      padding:.9rem 1rem;
+      border-radius: 8px;
+      border:1px solid #003366;
+      font-size:1rem;
+      background:#fff;
+      color:#000;
+    }
+
+    /* ===== Layout ===== */
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem 3rem; }
+    .muted { color:#555; text-align:center; margin:1rem 0; }
+    .hidden { display:none; }
+
+    /* ===== Grid: exactly 5 per row ===== */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr); /* 5 across */
+      gap: 1rem;
+      justify-items: center;
+    }
+
+    /* ===== Cards ===== */
+    .card{
+      background:#fff;
+      border:1px solid #003366;
+      border-radius:12px;
+      padding:1rem;
+      display:flex; flex-direction:column; align-items:center; text-align:center;
+      width:200px;                                 /* consistent card width */
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .card:hover{ transform: translateY(-5px); box-shadow:0 8px 15px rgba(0,0,0,.3); }
+    .card img{ width:160px; height:160px; border-radius:8px; margin-bottom:.5rem; background:#e6f2ff; }
+    .card h3{ margin:.5rem 0 .25rem; font-size:1.1rem; color:#00008b; }
+    .sub{ margin:.25rem 0; color:#333; }
+
+    /* ===== Footer ===== */
+    .footer { padding:1rem; text-align:center; border-top:1px solid #003366; background:#b0c4de; }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <h1 class="title">Robofriends</h1>
+    <p class="subtitle">Search and browse friendly bots</p>
+    <div class="search">
+      <input id="searchInput" type="search" placeholder="Search by name, username, or email" aria-label="Search robots" />
+    </div>
+  </header>
+
+  <main class="container">
+    <div id="status" class="muted">Loading robots…</div>
+    <section id="grid" class="grid" aria-live="polite"></section>
+  </main>
+
+  <footer class="footer">
+    <small>Images by <a href="https://robohash.org/" target="_blank" rel="noreferrer">RoboHash</a> · Data from JSONPlaceholder</small>
+  </footer>
+
+  <script>
+    const API_URL = "https://jsonplaceholder.typicode.com/users";
+    const grid = document.getElementById("grid");
+    const statusEl = document.getElementById("status");
+    const searchInput = document.getElementById("searchInput");
+
+    let robots = [];
+    let filtered = [];
+
+    function debounce(fn, ms = 200) {
+      let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn.apply(this, args), ms); };
+    }
+
+    function cardTemplate({ id, name, username, email }) {
+      const img = `https://robohash.org/${encodeURIComponent(username || name || id)}?size=200x200&set=set2`;
+      return `
+        <article class="card" tabindex="0">
+          <img src="${img}" alt="${name} avatar" loading="lazy" />
+          <h3>${name}</h3>
+          <p class="sub">${username}</p>
+          <p class="muted">${email}</p>
+        </article>`;
+    }
+
+    function render(list) {
+      if (!list.length) {
+        grid.innerHTML = "";
+        statusEl.textContent = "No matches.";
+        statusEl.classList.remove("hidden");
+        return;
+      }
+      statusEl.classList.add("hidden");
+      grid.innerHTML = list.map(cardTemplate).join("");
+    }
+
+    function applyFilter(q) {
+      const query = q.trim().toLowerCase();
+      filtered = !query
+        ? robots.slice()
+        : robots.filter(r =>
+            r.name.toLowerCase().includes(query) ||
+            r.username.toLowerCase().includes(query) ||
+            r.email.toLowerCase().includes(query)
+          );
+      render(filtered);
+    }
+
+    async function loadRobots() {
+      try {
+        statusEl.textContent = "Loading robots…";
+        const res = await fetch(API_URL);
+        if (!res.ok) throw new Error("Network error");
+        robots = await res.json();
+        filtered = robots.slice();
+        statusEl.classList.add("hidden");
+        render(filtered);
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = "Unable to load data. Check your internet and refresh.";
+      }
+    }
+
+    searchInput.addEventListener("input", debounce(e => applyFilter(e.target.value), 150));
+    document.addEventListener("DOMContentLoaded", loadRobots);
+  </script>
+</body>
+</html>

@@ -1,0 +1,110 @@
+/* Global styles */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #add8e6; /* light blue background */
+  color: #000;
+}
+
+/* Header */
+.header {
+  padding: 2rem 1rem 1rem;
+  text-align: center;
+}
+
+.title {
+  margin: 0;
+  font-size: 3rem;
+  color: #00008b; /* dark blue title */
+}
+
+.subtitle {
+  margin: 0.5rem 0 1rem;
+  color: #003366;
+}
+
+/* Search bar */
+.search {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.search input {
+  width: min(600px, 100%);
+  padding: 0.9rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #003366;
+  font-size: 1rem;
+}
+
+/* Container */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem 3rem;
+}
+
+/* Grid for robots */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr); /* exactly 5 per row */
+  gap: 1rem;
+  justify-items: center;
+}
+
+/* Robot card */
+.card {
+  background: white;
+  border: 1px solid #003366;
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 200px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+}
+
+.card img {
+  width: 160px;
+  height: 160px;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+  background: #e6f2ff;
+}
+
+.card h3 {
+  margin: 0.5rem 0 0.25rem;
+  font-size: 1.1rem;
+  color: #00008b;
+}
+
+.sub {
+  margin: 0.25rem 0;
+  color: #333;
+}
+
+.muted {
+  color: #555;
+  text-align: center;
+  margin: 1rem 0;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Footer */
+.footer {
+  padding: 1rem;
+  text-align: center;
+  border-top: 1px solid #003366;
+  background: #b0c4de;
+}
