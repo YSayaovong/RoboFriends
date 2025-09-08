@@ -7,7 +7,7 @@ A simple, interactive web app that displays a list of robot friends fetched from
 ![Robofriends Screenshot](assets/Capture.PNG)
 
 
-Live Demo: [(Add your GitHub Pages / Netlify link once deployed)](https://ysayaovong.github.io/RoboFriends/)
+Live Demo: [(RoboFriends)](https://ysayaovong.github.io/RoboFriends/)
 
 ## ✨ Features
 
