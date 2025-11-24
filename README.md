@@ -4,7 +4,7 @@ Built using **React 19**, **Vite**, and **Tachyons** for styling.
 Deployed on GitHub Pages.
 
 ## 🚀 Live Demo
-👉 https://ysayaovong.github.io/RoboFriends/
+👉 [https://ysayaovong.github.io/RoboFriends/](https://robofriends34.netlify.app/)
 
 ## 📸 Screenshot
 ![RoboFriends Screenshot](screenshot.png)
